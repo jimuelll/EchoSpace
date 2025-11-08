@@ -57,18 +57,18 @@ export const AuthCard = () => {
         setSignupEmail(data.email);
 
         if (mode === "signup") {
-          toast("Email already in use. Head to the Login Section and verify your email.");
-        } else {
-          // Optional: auto-resend code
-          await fetch(`${BASE_URL}/api/auth/resend`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: data.email }),
-          });
-
-          toast("Please verify your email to continue.");
-          setShowVerifyModal(true);
+        setSignupEmail(data.email);
+        setShowVerifyModal(true);
+        toast.success("Verification code sent!");
+      } else {
+        if (result.token) {
+          localStorage.setItem("token", result.token);
         }
+
+        toast.success("Login successful!");
+        await refetchUser();
+        navigate("/HomePage");
+      }
 
         return;
       }

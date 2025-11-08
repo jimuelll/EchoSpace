@@ -8,6 +8,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 const BASE_URL = import.meta.env.VITE_API_URL;
+const token = localStorage.getItem("token");
 
 type User = {
   id: string;
@@ -36,6 +37,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const res = await fetch(`${BASE_URL}/api/auth/me`, {
         credentials: "include",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
       const data = await res.json();
 
@@ -61,6 +65,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const res = await fetch(`${BASE_URL}/api/auth/logout`, {
         method: "POST",
         credentials: "include",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
       const data = await res.json();
 
