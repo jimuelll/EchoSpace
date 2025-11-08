@@ -1,0 +1,29 @@
+@import "tailwindcss";
+@import "cropperjs/dist/cropper.css";
+@import "tw-animate-css";
+html {
+  transition: background-color 0.3s ease;
+}
+
+
+
+:root {
+  --bgPrimary: #f3f5f7;
+  --textPrimary: #1e1e2a;
+  --cardBackground: #ffffff;
+  --borderColor: #d1d5db;
+  --mutedText: #6b7280;
+  --accent: #2f27ce;
+}
+
+body {
+  background-color: var(--bgPrimary);
+  color: var(--textPrimary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+
