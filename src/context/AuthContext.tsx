@@ -1,11 +1,4 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-  useRef,
-} from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from "axios";
@@ -36,10 +29,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
   const interceptorRef = useRef(false);
 
-  // Initialize Axios interceptor once
+  // Initialize Axios interceptor globally
   useEffect(() => {
     if (!interceptorRef.current) {
       axios.defaults.baseURL = BASE_URL;
+      axios.defaults.withCredentials = true; // important for cookies
 
       axios.interceptors.request.use((config) => {
         const token = localStorage.getItem("token");
@@ -56,15 +50,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Fetch current user
   const fetchUser = async () => {
-    const token = localStorage.getItem("token");
-    if (!token || token === "null" || token === "undefined") {
-      setUser(null);
-      setLoading(false);
-      return;
-    }
-
     try {
-      const res = await axios.get("/api/auth/me"); // interceptor adds token
+      setLoading(true);
+      const res = await axios.get("/api/auth/me"); // Axios adds token & cookies
       setUser(res.data);
     } catch (err) {
       console.error("Failed to fetch user:", err);
@@ -80,6 +68,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
+      await axios.post("/api/auth/logout"); // server can clear cookie if you implement it
       localStorage.removeItem("token");
       setUser(null);
       toast.success("Logged out");
@@ -91,7 +80,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    fetchUser(); // auto-load user on mount
+    fetchUser();
   }, []);
 
   return (
