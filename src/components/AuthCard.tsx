@@ -8,9 +8,9 @@ import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
-const BASE_URL = import.meta.env.VITE_API_URL;
-
 import VerifyEmailModal from "@/components/VerifyEmailModal";
+
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 type Mode = "login" | "signup";
 type LoginFormType = z.infer<typeof loginSchema>;
@@ -37,49 +37,49 @@ export const AuthCard = () => {
   });
 
   const onSubmit = async (data: any) => {
-  const endpoint =
-    mode === "signup"
-      ? `${BASE_URL}/api/auth/signup`
-      : `${BASE_URL}/api/auth/login`;
+    const endpoint =
+      mode === "signup"
+        ? `${BASE_URL}/api/auth/signup`
+        : `${BASE_URL}/api/auth/login`;
 
-  try {
-    const res = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify(data),
-    });
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // cookies are sent automatically
+        body: JSON.stringify(data),
+      });
 
-    const result = await res.json();
+      const result = await res.json();
 
-    if (!res.ok) {
-    if (result.unverified) {
-      setSignupEmail(data.email);
-      setShowVerifyModal(true);
-      toast.error("Please verify your email first.");
-      return;
-    }
+      if (!res.ok) {
+        if (result.unverified) {
+          setSignupEmail(data.email);
+          setShowVerifyModal(true);
+          toast.error("Please verify your email first.");
+          return;
+        }
+        toast.error(result.error || "Something went wrong");
+        return;
+      }
 
-    toast.error(result.error || "Something went wrong");
-    return;
-  }
-  if (mode === "signup") {
-    setSignupEmail(data.email);
-    setShowVerifyModal(true);
-    toast.success("Verification code sent!");
-  } else {
-    localStorage.setItem("token", result.token);
-    toast.success("Login successful!");
-    await refetchUser();
-    navigate("/HomePage");
-  }
+      if (isSignUp) {
+        setSignupEmail(data.email);
+        setShowVerifyModal(true);
+        toast.success("Verification code sent!");
+      } else {
+        // Cookie-based login, no localStorage needed
+        toast.success("Login successful!");
+        await refetchUser(); // fetches current user via cookie
+        navigate("/HomePage");
+      }
     } catch (err) {
       console.error(err);
       toast.error("Network error. Please try again.");
     }
   };
 
-
+  // Styles
   const bgGradient = isDark
     ? "bg-gradient-to-br from-[#19183B] to-[#2C2B5A]"
     : "bg-gradient-to-br from-[#E7F2EF] to-[#A1C2BD]";

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode, useRef } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from "axios";
@@ -27,32 +27,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const interceptorRef = useRef(false);
 
-  // Initialize Axios interceptor globally
+  // Axios config
   useEffect(() => {
-    if (!interceptorRef.current) {
-      axios.defaults.baseURL = BASE_URL;
-      axios.defaults.withCredentials = true; // important for cookies
-
-      axios.interceptors.request.use((config) => {
-        const token = localStorage.getItem("token");
-        if (token) {
-          config.headers = config.headers ?? {};
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-      });
-
-      interceptorRef.current = true;
-    }
+    axios.defaults.baseURL = BASE_URL;
+    axios.defaults.withCredentials = true; // send cookies automatically
   }, []);
 
   // Fetch current user
   const fetchUser = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("/api/auth/me"); // Axios adds token & cookies
+      const res = await axios.get("/api/auth/me");
       setUser(res.data);
     } catch (err) {
       console.error("Failed to fetch user:", err);
@@ -68,8 +54,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      await axios.post("/api/auth/logout"); // server can clear cookie if you implement it
-      localStorage.removeItem("token");
+      await axios.post("/api/auth/logout"); // backend clears cookie
       setUser(null);
       toast.success("Logged out");
       navigate("/");

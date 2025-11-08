@@ -13,21 +13,12 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const generateToken = (userId) =>
   jwt.sign({ userId }, JWT_SECRET, { expiresIn: "7d" });
 
-// Utility: extract token from Authorization header
-const extractToken = (req) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith("Bearer ")) return null;
-  const token = authHeader.split(" ")[1];
-  return token && token !== "null" && token !== "undefined" ? token : null;
-};
-
 // Signup
 router.post("/signup", async (req, res) => {
   const { name, email, password } = req.body;
 
   try {
     const existing = await prisma.user.findUnique({ where: { email } });
-
     if (existing) {
       if (!existing.isVerified) {
         return res.status(409).json({
@@ -84,8 +75,15 @@ router.post("/verify", async (req, res) => {
     });
 
     const token = generateToken(user.id);
+    // Set cookie for auth
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
     res.status(200).json({
-      token,
       id: user.id,
       name: user.name,
       email: user.email,
@@ -103,17 +101,13 @@ router.post("/login", async (req, res) => {
   try {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) return res.status(401).json({ error: "Invalid credentials" });
-
     if (!user.isVerified) {
-      return res.status(403).json({
-        error: "Email not verified",
-        unverified: true,
-      });
+      return res.status(403).json({ error: "Email not verified", unverified: true });
     }
 
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(401).json({ error: "Invalid credentials" });
-    
+
     const token = generateToken(user.id);
     res.cookie("token", token, {
       httpOnly: true,
@@ -121,8 +115,8 @@ router.post("/login", async (req, res) => {
       sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
+
     res.status(200).json({
-      token,
       id: user.id,
       name: user.name,
       email: user.email,
@@ -135,8 +129,7 @@ router.post("/login", async (req, res) => {
 
 // Get current user
 router.get("/me", async (req, res) => {
-  const authHeader = req.headers.authorization;
-  const token = authHeader?.split(" ")[1];
+  const token = req.cookies.token;
   if (!token) return res.status(401).json({ error: "Not authenticated" });
 
   try {
@@ -145,9 +138,7 @@ router.get("/me", async (req, res) => {
       where: { id: decoded.userId },
       select: { id: true, name: true, email: true, imageUrl: true },
     });
-
     if (!user) return res.status(404).json({ error: "User not found" });
-
     res.status(200).json(user);
   } catch (err) {
     console.error("Token verification failed:", err);
@@ -155,8 +146,14 @@ router.get("/me", async (req, res) => {
   }
 });
 
-// Logout (client should just delete token)
+// Logout
 router.post("/logout", (_req, res) => {
+  res.cookie("token", "", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    expires: new Date(0),
+  });
   res.status(200).json({ message: "Logged out successfully" });
 });
 
@@ -164,8 +161,7 @@ router.post("/logout", (_req, res) => {
 const upload = multer({ dest: "uploads/" });
 
 router.post("/upload-profile", upload.single("image"), async (req, res) => {
-  const authHeader = req.headers.authorization;
-  const token = authHeader?.split(" ")[1];
+  const token = req.cookies.token;
   if (!token) return res.status(401).json({ error: "Not authenticated" });
 
   try {
@@ -197,10 +193,7 @@ router.post("/resend", async (req, res) => {
 
     await prisma.user.update({
       where: { email },
-      data: {
-        verificationCode: newCode,
-        codeExpiresAt: newExpiry,
-      },
+      data: { verificationCode: newCode, codeExpiresAt: newExpiry },
     });
 
     await sendVerificationEmail(email, newCode);
