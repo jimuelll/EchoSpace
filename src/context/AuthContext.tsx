@@ -4,9 +4,11 @@ import {
   useEffect,
   useState,
   type ReactNode,
+  useRef,
 } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import axios from "axios";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -14,8 +16,8 @@ type User = {
   id: string;
   name: string;
   email: string;
-  imageUrl: string;
-  role: string;
+  imageUrl?: string;
+  role?: string;
 };
 
 type AuthContextType = {
@@ -32,27 +34,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const interceptorRef = useRef(false);
 
+  // Initialize Axios interceptor once
+  useEffect(() => {
+    if (!interceptorRef.current) {
+      axios.defaults.baseURL = BASE_URL;
+
+      axios.interceptors.request.use((config) => {
+        const token = localStorage.getItem("token");
+        if (token) {
+          config.headers = config.headers ?? {};
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      });
+
+      interceptorRef.current = true;
+    }
+  }, []);
+
+  // Fetch current user
   const fetchUser = async () => {
     const token = localStorage.getItem("token");
     if (!token || token === "null" || token === "undefined") {
+      setUser(null);
       setLoading(false);
       return;
     }
 
     try {
-      const res = await fetch(`${BASE_URL}/api/auth/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await res.json();
-
-      if (res.ok) {
-        setUser(data);
-      } else {
-        setUser(null);
-      }
+      const res = await axios.get("/api/auth/me"); // interceptor adds token
+      setUser(res.data);
     } catch (err) {
       console.error("Failed to fetch user:", err);
       setUser(null);
@@ -66,32 +79,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async () => {
-    const token = localStorage.getItem("token");
     try {
-      const res = await fetch(`${BASE_URL}/api/auth/logout`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await res.json();
-
-      if (res.ok) {
-        localStorage.removeItem("token");
-        setUser(null);
-        toast.success("Logged out");
-        navigate("/");
-      } else {
-        toast.error(data.error || "Logout failed");
-      }
-    } catch (err) {
+      localStorage.removeItem("token");
+      setUser(null);
+      toast.success("Logged out");
+      navigate("/");
+    } catch (err: any) {
       console.error("Logout error:", err);
-      toast.error("Network error");
+      toast.error(err?.response?.data?.error || "Logout failed");
     }
   };
 
   useEffect(() => {
-    fetchUser(); // ✅ auto-load user on mount
+    fetchUser(); // auto-load user on mount
   }, []);
 
   return (
