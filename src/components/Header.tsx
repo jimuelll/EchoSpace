@@ -1,5 +1,5 @@
 import { Bell, Menu, Search, PlusCircle } from "lucide-react";
-import logo from "../../src/logo.svg";
+import logo from "../../public/logo.svg";
 import {
   DropdownMenu,
   DropdownMenuTrigger,

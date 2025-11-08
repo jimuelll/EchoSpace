@@ -131,7 +131,7 @@ export const AuthCard = () => {
 
         {/* Heading */}
         <div className="flex items-center justify-center gap-1 mb-2">
-          <img className="w-10 h-10" src="src/logo.svg" alt="EchoSpace logo" />
+          <img className="w-10 h-10" src="/logo.svg" alt="EchoSpace logo" />
           <h2 className="text-3xl font-extrabold tracking-wide bg-gradient-to-r from-[#00FFD1] via-[#00BFFF] to-[#6A5ACD] text-transparent bg-clip-text font-orbitron">
             EchoSpace
           </h2>

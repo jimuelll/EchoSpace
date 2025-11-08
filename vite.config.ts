@@ -17,9 +17,16 @@ export default defineConfig({
         target: "http://localhost:3001",
       },
     },
+    fs: {
+      allow: [".."],
+    },
   },
   optimizeDeps: {
     exclude: ['react-medium-image-zoom'],
   },
+  build: {
+    outDir: "dist",
+  },
+  base: "/",
 })
 
