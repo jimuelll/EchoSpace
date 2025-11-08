@@ -115,16 +115,12 @@ router.post("/login", async (req, res) => {
     if (!valid) return res.status(401).json({ error: "Invalid credentials" });
 
     const token = generateToken(user.id);
-    res.cookie("token", token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "none",
-  });
-  res.status(200).json({
-    id: user.id,
-    name: user.name,
-    email: user.email,
-  });
+    res.status(200).json({
+      token,
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    });
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ error: "Login failed" });
