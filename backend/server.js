@@ -17,7 +17,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const allowedOrigins = [
-  "http://localhost:5174",
+  "http://localhost:5173",
   "https://echo-space-b9t4.vercel.app", // ← your Vercel frontend
 ];
 
