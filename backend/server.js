@@ -17,20 +17,21 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const allowedOrigins = [
-  "http://localhost:5173", // for local dev
-  "https://echo-space-b9t4.vercel.app", // your Vercel frontend
+  "http://localhost:5173",
+  "https://echo-space-b9t4.vercel.app", // ← your Vercel frontend
 ];
 
 app.use(cors({
-  origin: (origin, callback) => {
-    if (allowedOrigins.includes(origin) || !origin) {
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error("Not allowed by CORS"));
     }
   },
   credentials: true,
 }));
+
 
 app.use(express.json());
 app.use(cookieParser());
