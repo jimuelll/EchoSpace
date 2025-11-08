@@ -53,44 +53,31 @@ export const AuthCard = () => {
     const result = await res.json();
 
     if (!res.ok) {
-      if (result.unverified) {
-        setSignupEmail(data.email);
-
-        if (mode === "signup") {
-        setSignupEmail(data.email);
-        setShowVerifyModal(true);
-        toast.success("Verification code sent!");
-      } else {
-        if (result.token) {
-          localStorage.setItem("token", result.token);
-        }
-
-        toast.success("Login successful!");
-        await refetchUser();
-        navigate("/HomePage");
-      }
-
-        return;
-      }
-
-      toast.error(result.error || "Something went wrong");
+    if (result.unverified) {
+      setSignupEmail(data.email);
+      setShowVerifyModal(true);
+      toast.error("Please verify your email first.");
       return;
     }
 
-    if (mode === "signup") {
-      setSignupEmail(data.email);
-      setShowVerifyModal(true);
-      toast.success("Verification code sent!");
-    } else {
-      toast.success("Login successful!");
-      await refetchUser();
-      navigate("/HomePage");
-    }
-  } catch (err) {
-    console.error(err);
-    toast.error("Network error. Please try again.");
+    toast.error(result.error || "Something went wrong");
+    return;
   }
-};
+  if (mode === "signup") {
+    setSignupEmail(data.email);
+    setShowVerifyModal(true);
+    toast.success("Verification code sent!");
+  } else {
+    localStorage.setItem("token", result.token);
+    toast.success("Login successful!");
+    await refetchUser();
+    navigate("/HomePage");
+  }
+    } catch (err) {
+      console.error(err);
+      toast.error("Network error. Please try again.");
+    }
+  };
 
 
   const bgGradient = isDark

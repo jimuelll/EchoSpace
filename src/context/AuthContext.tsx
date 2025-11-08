@@ -7,8 +7,8 @@ import {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+
 const BASE_URL = import.meta.env.VITE_API_URL;
-const token = localStorage.getItem("token");
 
 type User = {
   id: string;
@@ -34,9 +34,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
 
   const fetchUser = async () => {
+    const token = localStorage.getItem("token");
+    if (!token || token === "null" || token === "undefined") {
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch(`${BASE_URL}/api/auth/me`, {
-        credentials: "include",
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -61,10 +66,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async () => {
+    const token = localStorage.getItem("token");
     try {
       const res = await fetch(`${BASE_URL}/api/auth/logout`, {
         method: "POST",
-        credentials: "include",
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -72,6 +77,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const data = await res.json();
 
       if (res.ok) {
+        localStorage.removeItem("token");
         setUser(null);
         toast.success("Logged out");
         navigate("/");
@@ -79,13 +85,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         toast.error(data.error || "Logout failed");
       }
     } catch (err) {
-      console.error(err);
+      console.error("Logout error:", err);
       toast.error("Network error");
     }
   };
 
   useEffect(() => {
-    fetchUser();
+    fetchUser(); // ✅ auto-load user on mount
   }, []);
 
   return (
