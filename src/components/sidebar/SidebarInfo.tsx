@@ -1,7 +1,6 @@
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
-const BASE_URL = import.meta.env.VITE_API_URL;
 
 export function UserInfo({
   collapsed,
@@ -17,7 +16,7 @@ export function UserInfo({
       <div className={`flex flex-col items-center ${collapsed ? "gap-2" : "gap-3"}`}>
         <div className={`flex items-center ${collapsed ? "justify-center" : "gap-3"} w-full`}>
           <img
-            src={`${BASE_URL}${user?.imageUrl || "/default-avatar.svg"}?t=${Date.now()}`}
+            src={`${user?.imageUrl || "/default-avatar.svg"}?t=${Date.now()}`}
             alt="Profile"
             className="w-10 h-10 rounded-full object-cover"
           />

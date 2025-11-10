@@ -72,7 +72,7 @@ export default function CommunityPage() {
         <div className="w-full h-48 rounded-lg overflow-hidden mb-6">
           {community.avatarUrl ? (
             <img
-              src={`${BASE_URL}${community.avatarUrl}`}
+              src={community.avatarUrl}
               alt={community.name}
               className="w-full h-full object-cover"
             />

@@ -122,7 +122,7 @@ export default function PublicCommunitiesPage() {
                 <div className={`${bannerBg} flex items-center justify-center h-4/5`}>
                   {community.avatarUrl ? (
                     <img
-                      src={`${BASE_URL}${community.avatarUrl}`}
+                      src={community.avatarUrl}
                       alt={community.name}
                       className="w-full h-full object-cover"
                     />
