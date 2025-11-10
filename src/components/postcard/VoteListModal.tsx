@@ -89,9 +89,7 @@ export function VoteListModal({
                   {upvoters.map((user, i) => (
                     <li key={i} className="flex items-center gap-3">
                       <img
-                        src={
-                          resolveImageUrl(user.imageUrl || "/default-avatar.svg")
-                        }
+                        src={resolveImageUrl(user.imageUrl)}
                         alt="avatar"
                         className={`w-7 h-7 rounded-full object-cover border ${avatarBorder}`}
                       />
@@ -121,9 +119,7 @@ export function VoteListModal({
                   {downvoters.map((user, i) => (
                     <li key={i} className="flex items-center gap-3">
                       <img
-                        src={
-                          resolveImageUrl(user.imageUrl || "/default-avatar.svg")
-                        }
+                        src={resolveImageUrl(user.imageUrl)}
                         alt="avatar"
                         className={`w-7 h-7 rounded-full object-cover border ${avatarBorder}`}
                       />

@@ -17,7 +17,7 @@ export function UserInfo({
       <div className={`flex flex-col items-center ${collapsed ? "gap-2" : "gap-3"}`}>
         <div className={`flex items-center ${collapsed ? "justify-center" : "gap-3"} w-full`}>
           <img
-            src={user?.imageUrl ? `${resolveImageUrl(user.imageUrl)}?t=${Date.now()}` : "/default-avatar.svg"}
+            src={resolveImageUrl(user?.imageUrl)}
             alt="Profile"
             className="w-10 h-10 rounded-full object-cover"
           />
