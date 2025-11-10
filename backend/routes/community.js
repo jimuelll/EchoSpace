@@ -9,25 +9,25 @@ const router = express.Router();
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// Configure Cloudinary
+// ---------------- Cloudinary Setup ----------------
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Multer storage for Cloudinary
 const storage = new CloudinaryStorage({
   cloudinary,
   params: async (req, file) => ({
     folder: "community-images",
-    format: "jpg", // convert all to jpg
+    format: "jpg",
     public_id: `${file.fieldname}-${Date.now()}`,
   }),
 });
+
 const upload = multer({ storage });
 
-// Decode JWT token
+// ---------------- JWT Utility ----------------
 function getUserIdFromToken(req) {
   const token = req.cookies?.token;
   if (!token) return null;
@@ -39,35 +39,6 @@ function getUserIdFromToken(req) {
     return null;
   }
 }
-
-// ---------------- JOIN COMMUNITY ----------------
-router.post("/join", async (req, res) => {
-  const userId = getUserIdFromToken(req);
-  if (!userId) return res.status(401).json({ error: "Not authenticated" });
-
-  const { code } = req.body;
-  if (!code) return res.status(400).json({ error: "Code is required" });
-
-  try {
-    const community = await prisma.community.findUnique({ where: { joinCode: code } });
-    if (!community) return res.status(404).json({ error: "Invalid code" });
-
-    await prisma.membership.create({
-      data: {
-        community: { connect: { id: community.id } },
-        user: { connect: { id: userId } },
-      },
-    });
-
-    res.json({ success: true, community });
-  } catch (err) {
-    console.error("Join error:", err);
-    if (err.code === "P2002") {
-      return res.status(409).json({ error: "Already joined this community" });
-    }
-    res.status(500).json({ error: "Server error" });
-  }
-});
 
 // ---------------- CREATE COMMUNITY ----------------
 router.post("/create", async (req, res) => {
@@ -99,7 +70,7 @@ router.post("/create", async (req, res) => {
 
     res.json({ success: true, community });
   } catch (err) {
-    console.error("Create error:", err);
+    console.error("Create community error:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -111,15 +82,77 @@ router.post("/upload", upload.single("image"), async (req, res) => {
 
   try {
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
-    const imagePath = req.file.path; // Cloudinary URL
-    res.json({ success: true, url: imagePath });
+    res.json({ success: true, url: req.file.path }); // Cloudinary URL
   } catch (err) {
     console.error("Upload error:", err);
     res.status(500).json({ error: "Upload failed" });
   }
 });
 
-// ---------------- FETCH COMMUNITY (WITH POSTS + VOTES) ----------------
+// ---------------- JOIN COMMUNITY ----------------
+router.post("/join", async (req, res) => {
+  const userId = getUserIdFromToken(req);
+  if (!userId) return res.status(401).json({ error: "Not authenticated" });
+
+  const { code } = req.body;
+  if (!code) return res.status(400).json({ error: "Code is required" });
+
+  try {
+    const community = await prisma.community.findUnique({ where: { joinCode: code } });
+    if (!community) return res.status(404).json({ error: "Invalid code" });
+
+    await prisma.membership.create({
+      data: {
+        community: { connect: { id: community.id } },
+        user: { connect: { id: userId } },
+      },
+    });
+
+    res.json({ success: true, community });
+  } catch (err) {
+    console.error("Join error:", err);
+    if (err.code === "P2002") return res.status(409).json({ error: "Already joined this community" });
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ---------------- FETCH PRIVATE COMMUNITIES ----------------
+router.get("/private", async (req, res) => {
+  const userId = getUserIdFromToken(req);
+  if (!userId) return res.status(401).json({ error: "Not authenticated" });
+
+  try {
+    const memberships = await prisma.membership.findMany({
+      where: { userId },
+      include: { community: true },
+    });
+
+    const privateCommunities = memberships
+      .map((m) => m.community)
+      .filter((c) => c.type === "PRIVATE");
+
+    res.json({ communities: privateCommunities });
+  } catch (err) {
+    console.error("Private fetch error:", err);
+    res.status(500).json({ error: "Failed to fetch private communities" });
+  }
+});
+
+// ---------------- FETCH PUBLIC COMMUNITIES ----------------
+router.get("/public", async (_req, res) => {
+  try {
+    const communities = await prisma.community.findMany({
+      where: { type: "PUBLIC" },
+      orderBy: { createdAt: "desc" },
+    });
+    res.json({ communities });
+  } catch (err) {
+    console.error("Public fetch error:", err);
+    res.status(500).json({ error: "Failed to fetch public communities" });
+  }
+});
+
+// ---------------- FETCH COMMUNITY WITH POSTS ----------------
 router.get("/:id", async (req, res) => {
   const userId = getUserIdFromToken(req);
   const { id } = req.params;
@@ -127,9 +160,15 @@ router.get("/:id", async (req, res) => {
   try {
     const community = await prisma.community.findUnique({
       where: { id },
-      select: { id: true, name: true, joinCode: true, type: true, avatarUrl: true, createdAt: true },
+      select: {
+        id: true,
+        name: true,
+        joinCode: true,
+        type: true,
+        avatarUrl: true,
+        createdAt: true,
+      },
     });
-
     if (!community) return res.status(404).json({ error: "Community not found" });
 
     const membership = await prisma.membership.findUnique({
