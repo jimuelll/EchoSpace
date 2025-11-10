@@ -88,7 +88,11 @@ export function VoteListModal({
                   {upvoters.map((user, i) => (
                     <li key={i} className="flex items-center gap-3">
                       <img
-                        src={`${BASE_URL}${user.imageUrl || "/default-avatar.svg"}?t=${Date.now()}`}
+                        src={
+                          user.imageUrl?.startsWith("http")
+                            ? user.imageUrl
+                            : `${BASE_URL}${user.imageUrl || "/default-avatar.svg"}?t=${Date.now()}`
+                        }
                         alt="avatar"
                         className={`w-7 h-7 rounded-full object-cover border ${avatarBorder}`}
                       />
@@ -118,7 +122,11 @@ export function VoteListModal({
                   {downvoters.map((user, i) => (
                     <li key={i} className="flex items-center gap-3">
                       <img
-                        src={`${BASE_URL}${user.imageUrl || "/default-avatar.svg"}?t=${Date.now()}`}
+                        src={
+                          user.imageUrl?.startsWith("http")
+                            ? user.imageUrl
+                            : `${BASE_URL}${user.imageUrl || "/default-avatar.svg"}?t=${Date.now()}`
+                        }
                         alt="avatar"
                         className={`w-7 h-7 rounded-full object-cover border ${avatarBorder}`}
                       />

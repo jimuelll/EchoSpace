@@ -72,12 +72,18 @@ export default function CommunityPage() {
         <div className="w-full h-48 rounded-lg overflow-hidden mb-6">
           {community.avatarUrl ? (
             <img
-              src={community.avatarUrl}
+              src={
+                community.avatarUrl.startsWith("http")
+                  ? community.avatarUrl 
+                  : `${BASE_URL}${community.avatarUrl}` 
+              }
               alt={community.name}
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className={`${bannerBg} w-full h-full flex items-center justify-center text-sm ${subtextColor}`}>
+            <div
+              className={`${bannerBg} w-full h-full flex items-center justify-center text-sm ${subtextColor}`}
+            >
               No banner uploaded
             </div>
           )}

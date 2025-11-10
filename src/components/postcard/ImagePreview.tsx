@@ -21,7 +21,11 @@ export function ImagePreview({
       {!isHorizontal && (
         <div className="absolute inset-0 z-0 overflow-hidden">
           <img
-            src={`${BASE_URL}${imageUrl}`}
+            src={
+              imageUrl.startsWith("http")
+                ? imageUrl
+                : `${BASE_URL}${imageUrl}`
+            }
             alt="blurred background"
             className="w-full h-full object-cover scale-110 blur-[40px] brightness-110 saturate-150"
           />
@@ -36,7 +40,11 @@ export function ImagePreview({
           <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-[#e0e0e0] via-[#f0f0f0] to-[#e0e0e0]" />
         )}
         <img
-          src={`${BASE_URL}${imageUrl}`}
+          src={
+            imageUrl.startsWith("http")
+              ? imageUrl 
+              : `${BASE_URL}${imageUrl}` 
+          }
           alt={title || "Post image"}
           loading="lazy"
           onLoad={(e) => {

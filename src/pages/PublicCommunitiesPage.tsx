@@ -122,7 +122,11 @@ export default function PublicCommunitiesPage() {
                 <div className={`${bannerBg} flex items-center justify-center h-4/5`}>
                   {community.avatarUrl ? (
                     <img
-                      src={community.avatarUrl}
+                      src={
+                        community.avatarUrl.startsWith("http")
+                          ? community.avatarUrl
+                          : `${BASE_URL}${community.avatarUrl}` 
+                      }
                       alt={community.name}
                       className="w-full h-full object-cover"
                     />
@@ -130,6 +134,7 @@ export default function PublicCommunitiesPage() {
                     <span className={`text-sm ${subtextColor}`}>No banner uploaded</span>
                   )}
                 </div>
+
                 <div className="flex-1 p-4 flex flex-col justify-between">
                   <div>
                     <h2 className="text-lg font-semibold">{community.name}</h2>

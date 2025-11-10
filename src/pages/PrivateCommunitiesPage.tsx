@@ -111,32 +111,38 @@ export default function PrivateCommunitiesPage() {
                   </div>
                 </div>
               ))
-            : communities.map((community) => (
-                <div
-                  key={community.id}
-                  onClick={() => navigate(`/community/${community.id}`)}
-                  className={`cursor-pointer ${cardBg} rounded-xl shadow-sm hover:shadow-md transition overflow-hidden flex flex-col`}
-                  style={{ aspectRatio: "1 / 1" }}
-                >
-                  <div className={`${bannerBg} flex items-center justify-center h-4/5`}>
-                    {community.avatarUrl ? (
-                      <img
-                        src={community.avatarUrl}
-                        alt={community.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className={`text-sm ${subtextColor}`}>No banner uploaded</span>
-                    )}
-                  </div>
-                  <div className="flex-1 p-4 flex flex-col justify-between">
-                    <div>
-                      <h2 className="text-lg font-semibold">{community.name}</h2>
-                      <p className={`text-sm ${subtextColor}`}>Join Code: {community.joinCode}</p>
-                    </div>
+            : 
+            communities.map((community) => (
+              <div
+                key={community.id}
+                onClick={() => navigate(`/community/${community.id}`)}
+                className={`cursor-pointer ${cardBg} rounded-xl shadow-sm hover:shadow-md transition overflow-hidden flex flex-col`}
+                style={{ aspectRatio: "1 / 1" }}
+              >
+                <div className={`${bannerBg} flex items-center justify-center h-4/5`}>
+                  {community.avatarUrl ? (
+                    <img
+                      src={
+                        community.avatarUrl.startsWith("http")
+                          ? community.avatarUrl // Cloudinary or remote image
+                          : `${BASE_URL}${community.avatarUrl}` // local /uploads image
+                      }
+                      alt={community.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className={`text-sm ${subtextColor}`}>No banner uploaded</span>
+                  )}
+                </div>
+
+                <div className="flex-1 p-4 flex flex-col justify-between">
+                  <div>
+                    <h2 className="text-lg font-semibold">{community.name}</h2>
+                    <p className={`text-sm ${subtextColor}`}>Join Code: {community.joinCode}</p>
                   </div>
                 </div>
-              ))}
+              </div>
+            ))}
         </div>
       </main>
 
