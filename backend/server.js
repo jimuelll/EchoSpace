@@ -38,7 +38,6 @@ app.use(cookieParser());
 app.use('/api/community', communityRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/post', postRoutes);
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/vote", voteOnPost);
 app.get("/api/voteStatus", voteStatus);
 

@@ -4,16 +4,36 @@ import jwt from "jsonwebtoken";
 import { PrismaClient } from "@prisma/client";
 import multer from "multer";
 import { sendVerificationEmail } from "../utils/email.js";
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
 
 const router = express.Router();
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET;
 
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Multer storage for Cloudinary
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: async (req, file) => ({
+    folder: "profiles",
+    format: "jpg",
+    public_id: `${file.fieldname}-${Date.now()}`,
+  }),
+});
+const upload = multer({ storage });
+
 // Utility: generate JWT
 const generateToken = (userId) =>
   jwt.sign({ userId }, JWT_SECRET, { expiresIn: "7d" });
 
-// Signup
+// ---------------- SIGNUP ----------------
 router.post("/signup", async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -52,7 +72,7 @@ router.post("/signup", async (req, res) => {
   }
 });
 
-// Verify email
+// ---------------- VERIFY EMAIL ----------------
 router.post("/verify", async (req, res) => {
   const { email, code } = req.body;
 
@@ -75,7 +95,6 @@ router.post("/verify", async (req, res) => {
     });
 
     const token = generateToken(user.id);
-    // Set cookie for auth
     res.cookie("token", token, {
       httpOnly: true,
       secure: true,
@@ -94,7 +113,7 @@ router.post("/verify", async (req, res) => {
   }
 });
 
-// Login
+// ---------------- LOGIN ----------------
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -127,7 +146,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// Get current user
+// ---------------- GET CURRENT USER ----------------
 router.get("/me", async (req, res) => {
   const token = req.cookies.token;
   if (!token) return res.status(401).json({ error: "Not authenticated" });
@@ -146,7 +165,7 @@ router.get("/me", async (req, res) => {
   }
 });
 
-// Logout
+// ---------------- LOGOUT ----------------
 router.post("/logout", (_req, res) => {
   res.cookie("token", "", {
     httpOnly: true,
@@ -157,30 +176,28 @@ router.post("/logout", (_req, res) => {
   res.status(200).json({ message: "Logged out successfully" });
 });
 
-// Upload profile image
-const upload = multer({ dest: "uploads/" });
-
+// ---------------- UPLOAD PROFILE IMAGE ----------------
 router.post("/upload-profile", upload.single("image"), async (req, res) => {
   const token = req.cookies.token;
   if (!token) return res.status(401).json({ error: "Not authenticated" });
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    const imagePath = `/uploads/${req.file.filename}`;
+    const imageUrl = req.file.path; // Cloudinary URL
 
     await prisma.user.update({
       where: { id: decoded.userId },
-      data: { imageUrl: imagePath },
+      data: { imageUrl },
     });
 
-    res.json({ success: true, imageUrl: imagePath });
+    res.json({ success: true, imageUrl });
   } catch (err) {
     console.error("Upload error:", err);
     res.status(500).json({ error: "Upload failed" });
   }
 });
 
-// Resend verification code
+// ---------------- RESEND VERIFICATION ----------------
 router.post("/resend", async (req, res) => {
   const { email } = req.body;
 
