@@ -6,6 +6,7 @@ import { PostCard } from "@/components/postcard";
 import { CreatePostModal } from "@/components/CreatePostModal";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
+import { resolveImageUrl } from "@/utils/resolveImageUrl";
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function CommunityPage() {
@@ -72,11 +73,7 @@ export default function CommunityPage() {
         <div className="w-full h-48 rounded-lg overflow-hidden mb-6">
           {community.avatarUrl ? (
             <img
-              src={
-                community.avatarUrl.startsWith("http")
-                  ? community.avatarUrl 
-                  : `${BASE_URL}${community.avatarUrl}` 
-              }
+              src={`${resolveImageUrl(community.avatarUrl)}?t=${Date.now()}`}
               alt={community.name}
               className="w-full h-full object-cover"
             />

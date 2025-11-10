@@ -2,6 +2,7 @@ import { Dialog } from "@headlessui/react";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { ArrowBigUp, ArrowBigDown } from "lucide-react";
+import { resolveImageUrl } from "@/utils/resolveImageUrl";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -89,9 +90,7 @@ export function VoteListModal({
                     <li key={i} className="flex items-center gap-3">
                       <img
                         src={
-                          user.imageUrl?.startsWith("http")
-                            ? user.imageUrl
-                            : `${BASE_URL}${user.imageUrl || "/default-avatar.svg"}?t=${Date.now()}`
+                          resolveImageUrl(user.imageUrl || "/default-avatar.svg")
                         }
                         alt="avatar"
                         className={`w-7 h-7 rounded-full object-cover border ${avatarBorder}`}
@@ -123,9 +122,7 @@ export function VoteListModal({
                     <li key={i} className="flex items-center gap-3">
                       <img
                         src={
-                          user.imageUrl?.startsWith("http")
-                            ? user.imageUrl
-                            : `${BASE_URL}${user.imageUrl || "/default-avatar.svg"}?t=${Date.now()}`
+                          resolveImageUrl(user.imageUrl || "/default-avatar.svg")
                         }
                         alt="avatar"
                         className={`w-7 h-7 rounded-full object-cover border ${avatarBorder}`}

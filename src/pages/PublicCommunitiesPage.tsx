@@ -5,6 +5,7 @@ import axios from "axios";
 import { JoinCommunityModal } from "@/components/JoinCommunityModal";
 import { CreateCommunityModal } from "@/components/CreateCommunityModal";
 import { useTheme } from "@/context/ThemeContext";
+import { resolveImageUrl } from "@/utils/resolveImageUrl";
 const BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function PublicCommunitiesPage() {
@@ -122,11 +123,7 @@ export default function PublicCommunitiesPage() {
                 <div className={`${bannerBg} flex items-center justify-center h-4/5`}>
                   {community.avatarUrl ? (
                     <img
-                      src={
-                        community.avatarUrl.startsWith("http")
-                          ? community.avatarUrl
-                          : `${BASE_URL}${community.avatarUrl}` 
-                      }
+                      src={`${resolveImageUrl(community.avatarUrl)}?t=${Date.now()}`}
                       alt={community.name}
                       className="w-full h-full object-cover"
                     />

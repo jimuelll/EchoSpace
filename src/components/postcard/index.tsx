@@ -3,7 +3,7 @@ import { useState } from "react";
 import { toast } from "react-hot-toast";
 import axios from "axios";
 import { useTheme } from "@/context/ThemeContext";
-
+import { resolveImageUrl } from "@/utils/resolveImageUrl";
 import { VoteControls } from "./VoteControls";
 import { ImageViewer } from "./ImageViewer";
 import { PostActions } from "./PostActions";
@@ -141,9 +141,7 @@ export function PostCard({
           <div className="flex items-center gap-3">
             <img
               src={
-                author.imageUrl?.startsWith("http")
-                  ? author.imageUrl
-                  : `${BASE_URL}${author.imageUrl || "/default-avatar.svg"}?t=${Date.now()}`
+                resolveImageUrl(author.imageUrl || "/default-avatar.svg")
               }
               alt="Profile"
               className="w-10 h-10 rounded-full object-cover"
@@ -172,9 +170,7 @@ export function PostCard({
           <ImagePreview imageUrl={localImageUrl} title={localTitle} onClick={() => setOpenViewer(true)} />
           <ImageViewer
             src={
-              localImageUrl.startsWith("http")
-                ? localImageUrl
-                : `${BASE_URL}${localImageUrl}`
+              resolveImageUrl(localImageUrl)
             }
             title={localTitle}
             open={openViewer}

@@ -1,5 +1,5 @@
 import { useState } from "react";
-const BASE_URL = import.meta.env.VITE_API_URL;
+import { resolveImageUrl } from "@/utils/resolveImageUrl";
 
 export function ImagePreview({
   imageUrl,
@@ -22,9 +22,7 @@ export function ImagePreview({
         <div className="absolute inset-0 z-0 overflow-hidden">
           <img
             src={
-              imageUrl.startsWith("http")
-                ? imageUrl
-                : `${BASE_URL}${imageUrl}`
+              resolveImageUrl(imageUrl)
             }
             alt="blurred background"
             className="w-full h-full object-cover scale-110 blur-[40px] brightness-110 saturate-150"
@@ -41,9 +39,7 @@ export function ImagePreview({
         )}
         <img
           src={
-            imageUrl.startsWith("http")
-              ? imageUrl 
-              : `${BASE_URL}${imageUrl}` 
+            resolveImageUrl(imageUrl)
           }
           alt={title || "Post image"}
           loading="lazy"

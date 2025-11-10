@@ -25,7 +25,7 @@ import { JoinCommunityModal } from "../JoinCommunityModal";
 import { useNavigate, useLocation } from "react-router-dom";
 import { CreateCommunityModal } from "../CreateCommunityModal";
 import { useTheme } from "@/context/ThemeContext";
-const BASE_URL = import.meta.env.VITE_API_URL;
+import { resolveImageUrl } from "@/utils/resolveImageUrl";
 
 type SidebarProps = {
   closeSidebar?: () => void;
@@ -252,7 +252,7 @@ export function Sidebar({ closeSidebar, onToggleCollapse }: SidebarProps) {
             } w-full`}
           >
             <img
-              src={`${BASE_URL}${user?.imageUrl || "/default-avatar.svg"}?t=${Date.now()}`}
+              src={`${resolveImageUrl(user?.imageUrl || "/default-avatar.svg")}?t=${Date.now()}`}
               alt="Profile"
               className="w-10 h-10 rounded-full object-cover"
             />
