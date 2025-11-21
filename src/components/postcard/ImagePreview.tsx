@@ -22,7 +22,7 @@ export function ImagePreview({
         <div className="absolute inset-0 z-0 overflow-hidden">
           <img
             src={
-              resolveImageUrl(imageUrl)
+              resolveImageUrl(`${imageUrl}?${Date.now()}`)
             }
             alt="blurred background"
             className="w-full h-full object-cover scale-110 blur-[40px] brightness-110 saturate-150"
@@ -39,7 +39,7 @@ export function ImagePreview({
         )}
         <img
           src={
-            resolveImageUrl(imageUrl)
+            resolveImageUrl(`${imageUrl}?${Date.now()}`)
           }
           alt={title || "Post image"}
           loading="lazy"

@@ -19,12 +19,16 @@ cloudinary.config({
 // Multer + Cloudinary storage
 const storage = new CloudinaryStorage({
   cloudinary,
-  params: async (req, file) => ({
-    folder: "post-images",
-    format: "jpg",
-    public_id: `${file.fieldname}-${Date.now()}`,
-  }),
+  params: async (req, file) => {
+    const publicId = `${file.fieldname}-${Date.now()}`;
+    return {
+      folder: "post-images",
+      format: "jpg",
+      public_id: publicId,
+    };
+  },
 });
+
 const upload = multer({ storage });
 
 // ---------------- JWT Utility ----------------
@@ -47,10 +51,11 @@ router.post("/upload", upload.single("image"), async (req, res) => {
 
   try {
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
-
-    // CloudinaryStorage stores the final URL in req.file.path
-    const imageUrl = req.file?.path || req.file?.filename || req.file?.url;
-    res.json({ success: true, url: imageUrl });
+    
+    const imageUrl = req.file.path;
+    const imageId = req.file.filename; 
+    
+    res.json({ success: true, url: imageUrl, id: imageId });
   } catch (err) {
     console.error("Upload error:", err);
     res.status(500).json({ error: "Upload failed" });
@@ -63,7 +68,7 @@ router.post("/create", async (req, res) => {
   if (!userId) return res.status(401).json({ error: "Not authenticated" });
 
   try {
-    const { communityId, title, content, imageUrl } = req.body;
+    const { communityId, title, content, imageUrl, imageId } = req.body;
 
     if (!communityId || !content) {
       return res.status(400).json({ error: "Missing required fields" });
@@ -77,6 +82,7 @@ router.post("/create", async (req, res) => {
         title: title?.trim() || null,
         content: content.trim(),
         imageUrl: imageUrl || null,
+        imageId: imageId || null,
         community: { connect: { id: communityId } },
         author: { connect: { id: userId } },
       },
@@ -95,20 +101,46 @@ router.patch("/:postId", async (req, res) => {
   if (!userId) return res.status(401).json({ error: "Not authenticated" });
 
   const { postId } = req.params;
-  const { title, content, imageUrl } = req.body;
+  const { title, content, imageUrl, imageId } = req.body;
 
   try {
     const post = await prisma.post.findUnique({ where: { id: postId } });
     if (!post) return res.status(404).json({ error: "Post not found" });
     if (post.authorId !== userId) return res.status(403).json({ error: "Unauthorized" });
 
+    let updateData = {
+      title: title?.trim() || null,
+      content: content?.trim() || post.content,
+    };
+
+    // If user removed the image entirely
+    if (post.imageId && imageUrl === null) {
+      try {
+        await cloudinary.uploader.destroy(post.imageId, { invalidate: true });
+      } catch (err) {
+        console.error("Failed to delete old image:", err);
+      }
+
+      updateData.imageUrl = null;
+      updateData.imageId = null;
+    }
+
+    // If user uploaded a new image
+    else if (imageId && imageId !== post.imageId) {
+      if (post.imageId) {
+        try {
+          await cloudinary.uploader.destroy(post.imageId, { invalidate: true });
+        } catch (err) {
+          console.error("Failed to delete replaced image:", err);
+        }
+      }
+      updateData.imageUrl = imageUrl;
+      updateData.imageId = imageId;
+    }
+
     const updated = await prisma.post.update({
       where: { id: postId },
-      data: {
-        title: title?.trim() || null,
-        content: content?.trim() || post.content,
-        imageUrl: imageUrl ?? post.imageUrl,
-      },
+      data: updateData,
     });
 
     res.json({ success: true, post: updated });
@@ -117,6 +149,7 @@ router.patch("/:postId", async (req, res) => {
     res.status(500).json({ error: "Failed to update post" });
   }
 });
+
 
 // ---------------- DELETE POST ----------------
 router.delete("/:id", async (req, res) => {
@@ -128,7 +161,7 @@ router.delete("/:id", async (req, res) => {
   try {
     const post = await prisma.post.findUnique({
       where: { id },
-      select: { authorId: true, imageUrl: true, communityId: true },
+      select: { authorId: true, imageId: true, communityId: true },
     });
 
     if (!post) return res.status(404).json({ error: "Post not found" });
@@ -147,12 +180,11 @@ router.delete("/:id", async (req, res) => {
     }
 
     // Delete image from Cloudinary if exists
-    if (post.imageUrl) {
-      const publicId = post.imageUrl.split("/").pop()?.split(".")[0];
-      if (publicId) {
-        cloudinary.uploader.destroy(`post-images/${publicId}`, (err, result) => {
-          if (err) console.error("Failed to delete image:", err);
-        });
+    if (post.imageId) {
+      try {
+        await cloudinary.uploader.destroy(post.imageId, {invalidate: true});
+      } catch (err) {
+        console.error("Failed to delete image:", err);
       }
     }
 

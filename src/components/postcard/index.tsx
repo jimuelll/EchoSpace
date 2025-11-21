@@ -170,7 +170,7 @@ export function PostCard({
           <ImagePreview imageUrl={localImageUrl} title={localTitle} onClick={() => setOpenViewer(true)} />
           <ImageViewer
             src={
-              resolveImageUrl(localImageUrl)
+              resolveImageUrl(`${localImageUrl}?${Date.now()}`)
             }
             title={localTitle}
             open={openViewer}

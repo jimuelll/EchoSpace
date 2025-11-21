@@ -44,51 +44,53 @@ export function CreatePostModal({
     setImagePreview(null);
   };
 
-  const handleSubmit = async () => {
-    if (!content.trim()) {
-      toast.error("Post content is required");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      let imageUrl: string | undefined;
-
-      if (imageFile) {
-        const formData = new FormData();
-        formData.append("image", imageFile);
-        const uploadRes = await axios.post(`${BASE_URL}/api/community/upload`, formData, {
-          withCredentials: true,
-        });
-        imageUrl = uploadRes.data.url;
+    const handleSubmit = async () => {
+      if (!content.trim()) {
+        toast.error("Post content is required");
+        return;
       }
 
-      await axios.post(
-        `${BASE_URL}/api/post/create`,
-        {
-          communityId,
-          title: title || undefined,
-          content,
-          imageUrl,
-        },
-        { withCredentials: true }
-      );
+      setLoading(true);
+      try {
+        let imageUrl: string | undefined;
+        let imageId: string | undefined;
 
-      toast.success("Post created!");
-      onPosted?.();
-      setOpen(false);
-      setTitle("");
-      setContent("");
-      setImageFile(null);
-      setImagePreview(null);
-    } catch (err: any) {
-      console.error("Post error:", err);
-      toast.error(err?.response?.data?.error || "Failed to create post");
-    } finally {
-      setLoading(false);
-    }
-  };
+        if (imageFile) {
+          const formData = new FormData();
+          formData.append("image", imageFile);
+          const uploadRes = await axios.post(`${BASE_URL}/api/post/upload`, formData, {
+            withCredentials: true,
+          });
+          imageUrl = uploadRes.data.url;
+          imageId = uploadRes.data.id;  
+        }
 
+        await axios.post(
+          `${BASE_URL}/api/post/create`,
+          {
+            communityId,
+            title: title || undefined,
+            content,
+            imageUrl,
+            imageId,   
+          },
+          { withCredentials: true }
+        );
+
+        toast.success("Post created!");
+        onPosted?.();
+        setOpen(false);
+        setTitle("");
+        setContent("");
+        setImageFile(null);
+        setImagePreview(null);
+      } catch (err: any) {
+        console.error("Post error:", err);
+        toast.error(err?.response?.data?.error || "Failed to create post");
+      } finally {
+        setLoading(false);
+      }
+    };
   return (
     <>
       <div onClick={() => setOpen(true)}>{children}</div>
