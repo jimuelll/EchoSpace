@@ -1,7 +1,7 @@
 import { Dialog } from "@headlessui/react";
 import { useState, useEffect, useRef } from "react";
 import { Download } from "lucide-react";
-const BASE_URL = import.meta.env.VITE_API_URL;
+import { resolveImageUrl } from "@/utils/resolveImageUrl";
 
 export function ImageViewer({
   src,
@@ -40,11 +40,25 @@ export function ImageViewer({
     }
   };
 
-  const handleDownload = () => {
-    const filename = src.split('/').pop(); // Extract filename from src
-    window.open(`${BASE_URL}/api/community/download/${filename}`, "_blank");
-  };
+const handleDownload = async () => {
+  try {
+    const resolvedUrl = resolveImageUrl(src);
+    const response = await fetch(resolvedUrl, { mode: "cors" });
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
 
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = src.split("/").pop()?.split("?")[0] || "image.jpg";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error("Download failed:", err);
+  }
+};
 
   const handleZoomClick = (e: React.MouseEvent<HTMLImageElement>) => {
     if (isMobile) return;
