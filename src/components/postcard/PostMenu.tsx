@@ -1,21 +1,30 @@
 import { MoreHorizontal, Pencil, Trash2, Lock, Users } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
+type PostMenuProps = {
+  postId: string;
+  onEdit?: () => void;
+  onDelete?: (postId: string) => void;
+  onViewVotes?: () => void;
+  theme?: "light" | "dark";
+  onOpenChange?: (isOpen: boolean) => void;
+};
+
 export function PostMenu({
   postId,
   onEdit,
   onDelete,
   onViewVotes,
   theme = "light",
-}: {
-  postId: string;
-  onEdit?: () => void;
-  onDelete?: (postId: string) => void;
-  onViewVotes?: () => void;
-  theme?: "light" | "dark";
-}) {
+  onOpenChange,
+}: PostMenuProps) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // Notify parent when open state changes
+  useEffect(() => {
+    onOpenChange?.(open);
+  }, [open, onOpenChange]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {

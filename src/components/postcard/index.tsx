@@ -14,7 +14,7 @@ import { EditPostModal } from "./EditPostModal";
 import { DeletePostModal } from "./DeletePostModal";
 import { VoteListModal } from "./VoteListModal";
 
-const BASE_URL = import.meta.env.VITE_API_URL;
+const BASE_URL = (import.meta as any).env.VITE_API_URL;
 
 type VoteValue = 1 | -1 | 0;
 
@@ -70,6 +70,9 @@ export function PostCard({
   const [localImageUrl, setLocalImageUrl] = useState(imageUrl);
   const [localTitle, setLocalTitle] = useState(title);
   const [localContent, setLocalContent] = useState(content);
+  
+  // State to track if the menu is open to handle z-index stacking
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const { voteScore, userVote, handleVote } = useVote({
     postId,
@@ -97,7 +100,9 @@ export function PostCard({
 
 
   return (
-    <div className={`relative rounded-xl border ${borderColor} ${shadow} transition overflow-visible ${cardBg} backdrop-blur-md`}>
+    <div 
+      className={`relative rounded-xl border ${borderColor} ${shadow} transition overflow-visible ${cardBg} backdrop-blur-md ${isMenuOpen ? 'z-50' : 'z-0'}`}
+    >
       {/* Modals */}
       {canEdit && (
         <EditPostModal
@@ -160,6 +165,7 @@ export function PostCard({
             onDelete={canDelete ? () => setDeleteOpen(true) : undefined}
             onViewVotes={() => setVoteModalOpen(true)}
             theme={theme}
+            onOpenChange={setIsMenuOpen}
           />
         </div>
       </div>
